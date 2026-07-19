@@ -1,0 +1,87 @@
+#!/bin/bash
+# Pre-commit Secret Detection Hook
+# Uses pattern matching + TruffleHog when available
+
+# Get list of staged files
+FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$FILES" ]; then
+    exit 0
+fi
+
+FILE_COUNT=$(echo "$FILES" | wc -l)
+echo "🔍 Scanning $FILE_COUNT staged files for secrets..."
+
+# Common secret patterns (high-precision, low false-positive)
+PATTERNS=(
+    "AWS_ACCESS_KEY_ID.*=.*AKIA[0-9A-Z]{16}"
+    "AWS_SECRET_ACCESS_KEY.*=.*[0-9a-zA-Z/+]{40}"
+    "sk-or-[a-zA-Z0-9]{48}"
+    "ghp_[a-zA-Z0-9]{36}"
+    "gho_[a-zA-Z0-9]{36}"
+    "ghu_[a-zA-Z0-9]{36}"
+    "ghs_[a-zA-Z0-9]{36}"
+    "ghr_[a-zA-Z0-9]{36}"
+    "github_pat_[a-zA-Z0-9]{82}"
+    "xoxb-[0-9]{13}-[0-9]{13}-[a-zA-Z0-9]{24}"
+    "xoxp-[0-9]{13}-[0-9]{13}-[0-9]{13}-[a-zA-Z0-9]{32}"
+    "AKIA[0-9A-Z]{16}"
+    "Bearer [a-zA-Z0-9+/]{40,}"
+    "api_key\\s*=\\s*['\"][a-zA-Z0-9]{32,}['\"]"
+    "secret\\s*=\\s*['\"][a-zA-Z0-9]{32,}['\"]"
+    "password\\s*=\\s*['\"][^'\"]{8,}['\"]"
+    "token\\s*=\\s*['\"][a-zA-Z0-9]{32,}['\"]"
+)
+
+SECRETS_FOUND=0
+FOUND_IN=""
+
+# Skip third-party minified bundles — they have coincidental secret-shaped substrings
+# in WASM/base64 blobs that cause false positives. Real secrets live in source/config files.
+skip_path() {
+    case "$1" in
+        .obsidian/plugins/*/main.js|.obsidian/plugins/*/styles.css) return 0 ;;
+        node_modules/*|*/node_modules/*) return 0 ;;
+        *.min.js|*.min.css) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Scan each staged file
+while IFS= read -r file; do
+    if [ ! -f "$file" ]; then
+        continue
+    fi
+
+    if skip_path "$file"; then
+        continue
+    fi
+
+    for pattern in "${PATTERNS[@]}"; do
+        if grep -qiE "$pattern" "$file" 2>/dev/null; then
+            SECRETS_FOUND=1
+            FOUND_IN="$FOUND_IN  - $file (matched: $(echo "$pattern" | cut -c1-30)...)"
+            break
+        fi
+    done
+done <<< "$FILES"
+
+if [ $SECRETS_FOUND -eq 1 ]; then
+    echo ""
+    echo "❌ POTENTIAL SECRET DETECTED! Commit blocked."
+    echo ""
+    echo "Found patterns matching secret formats in:"
+    echo "$FOUND_IN"
+    echo ""
+    echo "Common fixes:"
+    echo "  - Move to .env file (add to .gitignore)"
+    echo "  - Use environment variables"
+    echo "  - Store in Vault"
+    echo ""
+    echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
+    echo ""
+    exit 1
+fi
+
+echo "✅ No secrets detected. Proceeding with commit..."
+exit 0

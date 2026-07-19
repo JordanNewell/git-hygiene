@@ -1,0 +1,55 @@
+#!/bin/bash
+# commit-msg hook: strip AI-attribution trailers from commit messages.
+# Belt-and-suspenders backup to the CLAUDE.md instruction + settings.json
+# includeCoAuthoredBy:false. Catches what slips through other layers.
+#
+# Why: tools don't get co-author credit. The DeWalt rule.
+
+set -euo pipefail
+
+MSG_FILE="$1"
+TMP_FILE="$(mktemp)"
+
+# Strip lines matching any of these patterns (case-insensitive).
+# Patterns kept ASCII-only — multibyte emoji handling in grep is unreliable
+# across locales, so we match the surrounding text instead.
+grep -ivE \
+    -e 'Co-Authored-By:.*Claude' \
+    -e 'Co-Authored-By:.*Copilot' \
+    -e 'Co-Authored-By:.*Cursor' \
+    -e 'Co-Authored-By:.*Gemini' \
+    -e 'Co-Authored-By:.*ChatGPT' \
+    -e 'Co-Authored-By:.*GitHub[[:space:]]Copilot' \
+    -e 'Co-Authored-By:.*anthropic' \
+    -e 'Co-Authored-By:.*noreply@anthropic\.com' \
+    -e 'Co-Authored-By:.*<AI' \
+    -e 'Co-Authored-By:.*\bAI\b' \
+    -e 'Generated[[:space:]]with[[:space:]]Claude' \
+    -e 'Generated[[:space:]]with[[:space:]]Copilot' \
+    -e 'Generated[[:space:]]with[[:space:]]Cursor' \
+    -e 'Generated[[:space:]]with[[:space:]]Gemini' \
+    -e 'Generated-with:.*Claude' \
+    -e 'AI-assisted:' \
+    -e 'Written[[:space:]]by[[:space:]]Claude' \
+    -e 'Created[[:space:]]by[[:space:]]Claude' \
+    -e 'noreply@anthropic\.com' \
+    -e 'noreply@github\.com.*copilot' \
+    "$MSG_FILE" 2>/dev/null > "$TMP_FILE" || cp "$MSG_FILE" "$TMP_FILE"
+
+# Collapse runs of 2+ blank lines into 1, strip leading + trailing blanks
+awk '
+BEGIN { pending_blank = 0; first = 1 }
+/^[[:space:]]*$/ {
+    pending_blank = 1
+    next
+}
+{
+    if (pending_blank && !first) print ""
+    pending_blank = 0
+    first = 0
+    print
+}
+' "$TMP_FILE" > "$MSG_FILE"
+rm -f "$TMP_FILE"
+
+exit 0
