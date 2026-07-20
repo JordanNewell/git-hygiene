@@ -16,8 +16,10 @@ Three positions, held firmly:
 
 ```
 hooks/
-├── commit-msg    # Strips AI-attribution trailers from commit messages
-└── pre-commit    # Scans staged files for credential-shaped patterns
+├── commit-msg                      # Strips AI-attribution trailers + OPSEC scan on subject
+├── pre-commit                      # Scans staged files for credential-shaped patterns
+├── opsec-scan.sh                   # Sourceable library: builds $opsec_patterns from .local files
+└── opsec-patterns.local.example    # Template for user's gitignored opsec-patterns.local
 ```
 
 ### `commit-msg`
@@ -44,6 +46,20 @@ Scans staged files for the common high-precision credential patterns:
 - Skips `node_modules/`, `*.min.js`, `*.min.css`, `.obsidian/plugins/*/main.js`
 
 Optional TruffleHog integration when available. Falls back to grep-only otherwise.
+
+### `opsec-scan.sh` (optional — for operators with internal infrastructure)
+
+Sourceable library that builds a `$opsec_patterns` regex from up to three layers:
+
+1. **Hardcoded baseline** (tracked) — session IDs (`Sxxx` convention) + Tailscale CGNAT IPs (`100.x.x.x`). Safe for everyone.
+2. **Machine-level** — `$HOME/.config/opsec-patterns.local` (gitignored). Your real hostnames, tailnet name, codenames, agent handles. Defined once per machine, applies to every repo you commit to.
+3. **Repo-local** — `./.opsec-patterns.local` (gitignored). Optional extras for project-specific patterns.
+
+The `.local` files are gitignored by convention — they contain real infrastructure identifiers that are themselves OPSEC-sensitive. See [`hooks/opsec-patterns.local.example`](hooks/opsec-patterns.local.example) for the contract.
+
+`commit-msg` sources this library and scans the commit subject (first line) for matches. Bodies are not scanned — legitimate prose may mention collaborators by name. If no `.local` files are present, only the hardcoded baseline runs (safe default for OSS contributors).
+
+Pattern word boundaries are added automatically — `ada` won't false-match inside `readable` or `metadata`.
 
 ## Install
 
@@ -82,6 +98,25 @@ git log -1 --format='%B'
 echo "AWS_SECRET_ACCESS_KEY=abcd1234..." > /tmp/secret
 git add /tmp/secret  # should fail or warn
 ```
+
+### Optional: OPSEC scan setup
+
+If you commit to public repos from a machine that also hosts internal infrastructure (homeserver, agent fleet, internal codenames), enable the OPSEC scan:
+
+```bash
+# 1. Create your machine-level patterns file
+mkdir -p ~/.config
+cp ~/git-hygiene/hooks/opsec-patterns.local.example ~/.config/opsec-patterns.local
+
+# 2. Edit ~/.config/opsec-patterns.local — replace examples with your real values
+#    (hostnames, tailnet name, agent handles, codenames, internal service names)
+
+# 3. Test — commit-msg will now block subjects containing your patterns
+echo "S100: test session id" > /tmp/msg
+git commit -F /tmp/msg --allow-empty  # should FAIL with OPSEC leak message
+```
+
+Repos that want project-specific patterns on top of the machine-level set can add a `./.opsec-patterns.local` file (don't forget to gitignore it).
 
 ## Layered defense
 

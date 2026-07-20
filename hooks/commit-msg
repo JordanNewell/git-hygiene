@@ -1,13 +1,41 @@
 #!/bin/bash
-# commit-msg hook: strip AI-attribution trailers from commit messages.
+# commit-msg hook: strip AI-attribution trailers + scan subject for OPSEC leaks.
 # Belt-and-suspenders backup to the CLAUDE.md instruction + settings.json
 # includeCoAuthoredBy:false. Catches what slips through other layers.
 #
 # Why: tools don't get co-author credit. The DeWalt rule.
+#
+# Also: OPSEC scan on subject line — rejects session IDs, hostnames, agent
+# handles, tailnet name before the commit lands in public history. Sources
+# patterns from opsec-scan.sh (machine-level + repo-local .local files).
+# Opt-in: if no .local files are present, only the hardcoded baseline runs
+# (session IDs + Tailscale CGNAT IPs) — safe default for OSS users.
 
 set -euo pipefail
 
 MSG_FILE="$1"
+
+# OPSEC scan — subject line only (first line). Bodies get more lenient
+# treatment because legitimate prose may mention collaborators by name.
+# opsec-scan.sh sets $opsec_patterns; gracefully degrades if no .local files.
+_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+if [ -f "$_HOOK_DIR/opsec-scan.sh" ]; then
+  source "$_HOOK_DIR/opsec-scan.sh"
+else
+  opsec_patterns='\bS[0-9]{3}\b|100\.[0-9]{1,3}(\.[0-9]{1,3}){2}'
+fi
+if head -1 "$MSG_FILE" | grep -nE "$opsec_patterns" >/dev/null; then
+  echo "FAIL: commit subject contains OPSEC-sensitive token(s):" >&2
+  head -1 "$MSG_FILE" | grep -nE "$opsec_patterns" >&2
+  echo "" >&2
+  echo "Strip session IDs (Sxxx), hostnames, agent handles, tailnet name from" >&2
+  echo "the subject. Rephrase to a functional description." >&2
+  echo "If you've verified this is a false positive, use --no-verify (humans only)." >&2
+  exit 1
+fi
+unset _HOOK_DIR
+
 TMP_FILE="$(mktemp)"
 
 # Strip lines matching any of these patterns (case-insensitive).

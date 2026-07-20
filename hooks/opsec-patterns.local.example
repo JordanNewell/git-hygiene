@@ -1,0 +1,61 @@
+# opsec-patterns.local — gitignored, machine-specific OPSEC patterns
+#
+# This is the CONTRACT file (tracked). Real values live in:
+#   ~/.config/opsec-patterns.local          (machine-level, all repos)
+#   ./.opsec-patterns.local                 (repo-level extras, optional)
+#
+# Both are gitignored by convention — the values themselves are OPSEC-sensitive
+# (real hostnames, tailnet name, agent handles, codenames).
+#
+# Why machine-level: you commit to multiple repos from one machine. Defining
+# the patterns once at $HOME/.config/ means every repo's hooks + lints read
+# from the same source. No per-repo duplication, no drift.
+#
+# Format: one regex per line. Lines starting with `#` or blank lines are
+# ignored. opsec-scan.sh joins them with `|` and wraps the group in \b(...)
+# so agent handles like `ada` don't false-match inside `readable` or `metadata`.
+#
+# Setup (machine-level — applies to every repo you own):
+#   mkdir -p ~/.config
+#   cp hooks/opsec-patterns.local.example ~/.config/opsec-patterns.local
+#   # edit ~/.config/opsec-patterns.local: replace examples below with your reals
+#
+# Setup (repo-level extras — only when a repo has project-specific patterns):
+#   cp hooks/opsec-patterns.local.example ./.opsec-patterns.local
+#   # edit ./.opsec-patterns.local
+#   echo ".opsec-patterns.local" >> .gitignore
+#
+# Without either file present, opsec-scan.sh degrades gracefully: it runs only
+# the hardcoded baseline (homeserver*, session IDs, Tailscale CGNAT IPs).
+
+# === Hostnames (workstations, servers, exit nodes) ===
+# One per line. Word boundaries are added automatically — `myhost` won't match
+# inside `myhostname` but will match standalone `myhost`.
+# Example placeholders (replace with your real hostnames):
+my-workstation-name
+homeserver-hostname
+exit-node-region
+
+# === Tailnet name ===
+# The tailnet's DNS suffix (the part before .ts.net).
+# Example placeholder:
+my-tailnet-name
+
+# === Codenames (internal-only projects, fleets, tools) ===
+# Branded names for things that haven't shipped publicly. Functional
+# descriptions in prose are always preferred over codenames.
+# Example placeholders:
+internal-codename-1
+internal-codename-2
+
+# === Agent handles (any identity that maps to a public chat/Matrix/etc handle) ===
+# One per line. opsec-scan.sh wraps these in \b(...)\b automatically.
+# Example placeholders:
+agent-handle-1
+agent-handle-2
+agent-handle-3
+
+# === Service names (internal-only daemons, bots, bridges) ===
+# Example placeholders:
+internal-service-1
+internal-service-2
