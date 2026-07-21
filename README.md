@@ -45,7 +45,7 @@ Scans staged files for the common high-precision credential patterns:
 - Bearer tokens, generic API keys / passwords / secrets matching `key="..."` assignments
 - Skips `node_modules/`, `*.min.js`, `*.min.css`, `.obsidian/plugins/*/main.js`
 
-Optional TruffleHog integration when available. Falls back to grep-only otherwise.
+The public pre-commit uses regex patterns only. A gitleaks-integrated variant exists in Jordan's hardened fork for deeper coverage (Z.ai keys, JWTs, etc.). To add gitleaks to your own fork: install gitleaks (`apt install gitleaks` or [from GitHub](https://github.com/gitleaks/gitleaks/releases)), then add a gitleaks invocation to your local pre-commit after the regex layer.
 
 ### `opsec-scan.sh` (optional — for operators with internal infrastructure)
 
@@ -130,7 +130,8 @@ git config opsec.scan   # should print: disable
 
 The opt-out:
 - Lives in `.git/config` — never accidentally committed.
-- Disables the OPSEC pattern scan ONLY. The AI-attribution strip in `commit-msg` and the secret scan in `pre-commit` are unaffected.
+- Accepts `disable`, `off`, `false`, `no`, `0` (case-insensitive) — pick whichever feels natural.
+- Disables the OPSEC pattern scan ONLY. The AI-attribution strip in `commit-msg` and the regex-based secret scan in `pre-commit` are unaffected. (Note: gitleaks integration exists only in Jordan's hardened variant — public pre-commit is regex-only.)
 - Use it for internal repos whose commits never reach a public remote. Don't use it on repos that push to GitHub/GitLab publicly.
 
 Verify it's active with `git config opsec.scan`. When enabled, `commit-msg` emits a single-line notice to stderr: `OPSEC scan skipped (opsec.scan=disable)`.

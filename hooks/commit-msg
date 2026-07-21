@@ -48,6 +48,10 @@ TMP_FILE="$(mktemp)"
 # Strip lines matching any of these patterns (case-insensitive).
 # Patterns kept ASCII-only — multibyte emoji handling in grep is unreliable
 # across locales, so we match the surrounding text instead.
+#
+# ZCode / Z.ai / GLM / Bigmodel attribution (added 2026-07-20 — ported
+# from hardened variant). Vendor names aren't OPSEC-sensitive; any
+# operator using these tools benefits from clean commit history.
 grep -ivE \
     -e 'Co-Authored-By:.*Claude' \
     -e 'Co-Authored-By:.*Copilot' \
@@ -59,15 +63,23 @@ grep -ivE \
     -e 'Co-Authored-By:.*noreply@anthropic\.com' \
     -e 'Co-Authored-By:.*<AI' \
     -e 'Co-Authored-By:.*\bAI\b' \
+    -e 'Co-Authored-By:.*ZCode' \
+    -e 'Co-Authored-By:.*Z\.ai' \
+    -e 'Co-Authored-By:.*GLM' \
+    -e 'Co-Authored-By:.*Bigmodel' \
+    -e 'Co-Authored-By:.*BigModel' \
     -e 'Generated[[:space:]]with[[:space:]]Claude' \
     -e 'Generated[[:space:]]with[[:space:]]Copilot' \
     -e 'Generated[[:space:]]with[[:space:]]Cursor' \
     -e 'Generated[[:space:]]with[[:space:]]Gemini' \
+    -e 'Generated[[:space:]]with[[:space:]]ZCode' \
+    -e 'Generated[[:space:]]with[[:space:]]GLM' \
     -e 'Generated-with:.*Claude' \
     -e 'AI-assisted:' \
     -e 'Written[[:space:]]by[[:space:]]Claude' \
     -e 'Created[[:space:]]by[[:space:]]Claude' \
     -e 'noreply@anthropic\.com' \
+    -e 'noreply@z\.ai' \
     -e 'noreply@github\.com.*copilot' \
     "$MSG_FILE" 2>/dev/null > "$TMP_FILE" || cp "$MSG_FILE" "$TMP_FILE"
 

@@ -66,13 +66,24 @@ fi
 # Disables the OPSEC pattern scan ONLY — AI-attribution strip in commit-msg
 # and the secret scan in pre-commit are unaffected.
 #
+# Value normalization: the git config value is lowercased and matched against
+# a set of boolean-style synonyms (disable/off/false/no/0). Aligns with git's
+# own boolean conventions so 'Disable', 'DISABLE', 'off', etc. all trigger
+# the opt-out. Literal 'true'/'yes'/'1'/'enable' do NOT match the opt-out
+# case set, so they leave patterns intact (the default behavior).
+#
 # Applied last so it cleanly overrides all layered patterns. Only honor the
 # opt-out when inside a git work tree — when sourced by a standalone linter
 # (e.g. voice-lint on a markdown file outside a repo), `git config` would
-# fail noisily; the 2>/dev/null + && guard handles that gracefully.
-if [ -n "${opsec_patterns:-}" ] \
-   && [ "$(git config opsec.scan 2>/dev/null)" = "disable" ]; then
-  opsec_patterns=""
+# fail noisily; the 2>/dev/null handles that gracefully.
+if [ -n "${opsec_patterns:-}" ]; then
+  # `|| true` defends against `set -euo pipefail` in the sourcing hook —
+  # git config fails harmlessly when not inside a repo (standalone linters).
+  _opsec_decision="$(git config opsec.scan 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)"
+  case "$_opsec_decision" in
+    disable|off|false|no|0) opsec_patterns="" ;;
+  esac
+  unset _opsec_decision
 fi
 
 unset _opsec_local_file _opsec_local _opsec_repo_file _opsec_repo
