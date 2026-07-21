@@ -118,6 +118,23 @@ git commit -F /tmp/msg --allow-empty  # should FAIL with OPSEC leak message
 
 Repos that want project-specific patterns on top of the machine-level set can add a `./.opsec-patterns.local` file (don't forget to gitignore it).
 
+### Per-repo opt-out
+
+If a repo's history legitimately references internal codenames that match your OPSEC patterns (e.g. an internal infrastructure repo whose commits use `feat(fleet-cabinet-ops): ...` as subject scope), opt out per-repo:
+
+```bash
+cd /path/to/internal-repo
+git config opsec.scan disable
+git config opsec.scan   # should print: disable
+```
+
+The opt-out:
+- Lives in `.git/config` — never accidentally committed.
+- Disables the OPSEC pattern scan ONLY. The AI-attribution strip in `commit-msg` and the secret scan in `pre-commit` are unaffected.
+- Use it for internal repos whose commits never reach a public remote. Don't use it on repos that push to GitHub/GitLab publicly.
+
+Verify it's active with `git config opsec.scan`. When enabled, `commit-msg` emits a single-line notice to stderr: `OPSEC scan skipped (opsec.scan=disable)`.
+
 ## Layered defense
 
 The hook is one of three layers. Belt, suspenders, and a third belt.
