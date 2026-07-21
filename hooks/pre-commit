@@ -1,8 +1,18 @@
 #!/bin/bash
 # Pre-commit Secret Detection Hook
-# Uses pattern matching + TruffleHog when available
+# Two layers: (1) fast regex first-pass for known secret shapes,
+# (2) gitleaks scan of staged files for broad coverage (when installed).
 
-# Get list of staged files
+set -u  # catch unset vars only — NOT set -e (gitleaks wrapper is unreliable with it)
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "⚠  gitleaks not installed — broad secret scan skipped (regex only)."
+    echo "    Install: https://github.com/gitleaks/gitleaks/releases"
+    GITLEAKS_AVAILABLE=0
+else
+    GITLEAKS_AVAILABLE=1
+fi
+
 FILES=$(git diff --cached --name-only --diff-filter=ACM)
 
 if [ -z "$FILES" ]; then
@@ -12,7 +22,7 @@ fi
 FILE_COUNT=$(echo "$FILES" | wc -l)
 echo "🔍 Scanning $FILE_COUNT staged files for secrets..."
 
-# Common secret patterns (high-precision, low false-positive)
+# Layer 1: high-precision regex patterns for known secret shapes.
 PATTERNS=(
     "AWS_ACCESS_KEY_ID.*=.*AKIA[0-9A-Z]{16}"
     "AWS_SECRET_ACCESS_KEY.*=.*[0-9a-zA-Z/+]{40}"
@@ -36,18 +46,32 @@ PATTERNS=(
 SECRETS_FOUND=0
 FOUND_IN=""
 
-# Skip third-party minified bundles — they have coincidental secret-shaped substrings
-# in WASM/base64 blobs that cause false positives. Real secrets live in source/config files.
+# Skip third-party minified bundles + test/example fixtures — they have
+# realistic-looking fake keys (sk_test_, AKIAFAKE..., etc.) for testing/docs.
+# Real secrets live in source/config files.
 skip_path() {
     case "$1" in
+        # Third-party / vendored
         .obsidian/plugins/*/main.js|.obsidian/plugins/*/styles.css) return 0 ;;
         node_modules/*|*/node_modules/*) return 0 ;;
+        vendor/*|*/vendor/*|third_party/*|*/third_party/*) return 0 ;;
         *.min.js|*.min.css) return 0 ;;
+        # Test / spec / fixtures
+        test/*|*/test/*|tests/*|*/tests/*|__tests__/*|*/__tests__/*) return 0 ;;
+        spec/*|*/spec/*|fixtures/*|*/fixtures/*) return 0 ;;
+        *_test.*|*.test.*|*.spec.*|*_spec.*) return 0 ;;
+        # Examples / samples / docs
+        example/*|*/example/*|examples/*|*/examples/*) return 0 ;;
+        sample/*|*/sample/*|samples/*|*/samples/*) return 0 ;;
+        demo/*|*/demo/*|docs/*|*/docs/*) return 0 ;;
+        # Template / placeholder file extensions
+        *.example|*.sample|*.template|*.dist|*.tpl) return 0 ;;
+        *.env.example|*.env.sample) return 0 ;;
+        example.env|sample.env) return 0 ;;
         *) return 1 ;;
     esac
 }
 
-# Scan each staged file
 while IFS= read -r file; do
     if [ ! -f "$file" ]; then
         continue
@@ -81,6 +105,19 @@ if [ $SECRETS_FOUND -eq 1 ]; then
     echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
     echo ""
     exit 1
+fi
+
+# Layer 2: gitleaks — broader coverage (~700+ built-in detectors).
+if [ "$GITLEAKS_AVAILABLE" -eq 1 ]; then
+    if ! gitleaks protect --staged --redact --verbose 2>&1; then
+        echo ""
+        echo "❌ gitleaks: potential secret detected. Commit blocked."
+        echo ""
+        echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
+        echo "If verified false positive: add to .gitleaksignore"
+        echo ""
+        exit 1
+    fi
 fi
 
 echo "✅ No secrets detected. Proceeding with commit..."

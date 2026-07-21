@@ -2,7 +2,7 @@
 
 > Tools don't get co-author credit.
 
-A small set of git hooks that enforce a hygiene policy: keep AI-tool attribution out of commit messages, keep secrets out of staged files. No dependencies beyond `bash`, `grep`, `awk`, and `git` itself.
+A small set of git hooks that enforce a hygiene policy: keep AI-tool attribution out of commit messages, keep secrets out of staged files. No hard dependencies — just `bash`, `grep`, `awk`, and `git`. [gitleaks](https://github.com/gitleaks/gitleaks) is optional but recommended: when installed, the pre-commit hook gets ~700 additional secret detectors for free.
 
 ## The policy
 
@@ -38,14 +38,30 @@ Legitimate human co-authors (`Co-Authored-By: Jane Doe <jane@example.com>`) are 
 
 ### `pre-commit`
 
-Scans staged files for the common high-precision credential patterns:
+Two-layer secret detection:
+
+**Layer 1 — regex (always on, no dependencies).** High-precision patterns for known secret shapes:
 
 - AWS access keys (`AKIA...`) and secret keys
 - OpenAI (`sk-or-...`), GitHub (`ghp_/gho_/ghu_/ghs_/ghr_/github_pat_...`), Slack (`xoxb-/xoxp-`) tokens
 - Bearer tokens, generic API keys / passwords / secrets matching `key="..."` assignments
-- Skips `node_modules/`, `*.min.js`, `*.min.css`, `.obsidian/plugins/*/main.js`
 
-The public pre-commit uses regex patterns only. A gitleaks-integrated variant exists in Jordan's hardened fork for deeper coverage (Z.ai keys, JWTs, etc.). To add gitleaks to your own fork: install gitleaks (`apt install gitleaks` or [from GitHub](https://github.com/gitleaks/gitleaks/releases)), then add a gitleaks invocation to your local pre-commit after the regex layer.
+**Layer 2 — gitleaks (when installed).** Drops in automatically if [gitleaks](https://github.com/gitleaks/gitleaks) is on `$PATH`. Adds ~700 built-in detectors (Stripe live keys, GCP service account JSON, private keys, database URLs, etc.) that the regex layer doesn't know about. If gitleaks isn't installed, the hook prints a one-line warning and falls back to regex-only — still safe to commit.
+
+**Install gitleaks** (optional but recommended):
+
+```bash
+# macOS
+brew install gitleaks
+
+# Debian/Ubuntu
+apt install gitleaks
+
+# Other platforms — grab a release
+# https://github.com/gitleaks/gitleaks/releases
+```
+
+**Path skipping.** Both layers skip staged paths that are known to contain realistic-looking fake keys: `node_modules/`, `vendor/`, `third_party/`, `*.min.js`/`*.min.css`, `test[s]/`/`spec/`/`fixtures/`/`__tests__/`, `example[s]/`/`sample[s]/`/`demo/`/`docs/`, and `*.example`/`*.sample`/`*.template`/`*.dist` template extensions. Real secrets live in source/config files.
 
 ### `opsec-scan.sh` (optional — for operators with internal infrastructure)
 
@@ -131,7 +147,7 @@ git config opsec.scan   # should print: disable
 The opt-out:
 - Lives in `.git/config` — never accidentally committed.
 - Accepts `disable`, `off`, `false`, `no`, `0` (case-insensitive) — pick whichever feels natural.
-- Disables the OPSEC pattern scan ONLY. The AI-attribution strip in `commit-msg` and the regex-based secret scan in `pre-commit` are unaffected. (Note: gitleaks integration exists only in Jordan's hardened variant — public pre-commit is regex-only.)
+- Disables the OPSEC pattern scan ONLY. The AI-attribution strip in `commit-msg` and the secret scan in `pre-commit` (regex + gitleaks) are unaffected.
 - Use it for internal repos whose commits never reach a public remote. Don't use it on repos that push to GitHub/GitLab publicly.
 
 Verify it's active with `git config opsec.scan`. When enabled, `commit-msg` emits a single-line notice to stderr: `OPSEC scan skipped (opsec.scan=disable)`.
