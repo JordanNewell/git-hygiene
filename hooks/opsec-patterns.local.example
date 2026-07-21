@@ -26,7 +26,7 @@
 #   echo ".opsec-patterns.local" >> .gitignore
 #
 # Without either file present, opsec-scan.sh degrades gracefully: it runs only
-# the hardcoded baseline (homeserver*, session IDs, Tailscale CGNAT IPs).
+# the hardcoded baseline (session IDs, Tailscale CGNAT IPs).
 
 # === Hostnames (workstations, servers, exit nodes) ===
 # One per line. Word boundaries are added automatically — `myhost` won't match
