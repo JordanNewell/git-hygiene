@@ -120,5 +120,73 @@ if [ "$GITLEAKS_AVAILABLE" -eq 1 ]; then
     fi
 fi
 
+# Layer 3: OPSEC content scan — infrastructure identifiers (hostnames, agent
+# handles, codenames, tailnet name) in staged content + filenames. Catches
+# what credential-shaped regex can't: a fleet hostname in a comment, an
+# agent handle in a docstring, a tailnet suffix in a URL.
+#
+# Sources the same opsec-scan.sh library as commit-msg, so machine-level
+# ~/.config/opsec-patterns.local and repo-level ./.opsec-patterns.local apply.
+# Honors `git config opsec.scan disable` — when opt-out is set, opsec-scan.sh
+# leaves $opsec_patterns empty and this layer is a no-op.
+#
+# Scans ADDED lines only (diff ^+), not the full file. This avoids resurfacing
+# legacy mentions in unchanged prose that may be legitimate. New leaks get
+# caught; historical mentions stay a separate cleanup problem.
+#
+# Reuses skip_path() — test fixtures, *.example templates, node_modules, etc.
+# are exempt (same policy as Layers 1 + 2).
+if [ -z "${opsec_patterns:-}" ] && [ "${OPSEC_SCAN_LOADED:-0}" != "1" ]; then
+    _HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+    if [ -f "$_HOOK_DIR/opsec-scan.sh" ]; then
+        # shellcheck disable=SC1091
+        source "$_HOOK_DIR/opsec-scan.sh"
+    fi
+    OPSEC_SCAN_LOADED=1
+    unset _HOOK_DIR
+fi
+
+OPSEC_LEAKS=0
+OPSEC_FOUND=""
+
+if [ -n "${opsec_patterns:-}" ]; then
+    while IFS= read -r file; do
+        [ -f "$file" ] || continue
+        skip_path "$file" && continue
+
+        # Filename scan — catches myhost-config.yaml, myhandle-deploy.sh, etc.
+        if echo "$file" | grep -qE "$opsec_patterns"; then
+            OPSEC_LEAKS=1
+            OPSEC_FOUND="${OPSEC_FOUND}  - FILENAME ${file}\\n"
+        fi
+
+        # Content scan — added lines only (skip diff header +++ b/file).
+        while IFS= read -r line; do
+            [ -n "$line" ] || continue
+            OPSEC_LEAKS=1
+            OPSEC_FOUND="${OPSEC_FOUND}  - ${file}: ${line}\\n"
+        done < <(git diff --cached -U0 -- "$file" 2>/dev/null \
+                 | grep -E '^\+' \
+                 | grep -vE '^\+\+\+' \
+                 | grep -E "$opsec_patterns" 2>/dev/null)
+    done <<< "$FILES"
+
+    if [ $OPSEC_LEAKS -eq 1 ]; then
+        echo ""
+        echo "❌ OPSEC LEAK DETECTED in staged content. Commit blocked."
+        echo ""
+        echo "Found sensitive patterns in added lines / filenames:"
+        printf "%b" "$OPSEC_FOUND"
+        echo ""
+        echo "These match your ~/.config/opsec-patterns.local (machine-level)"
+        echo "or ./.opsec-patterns.local (repo-level). Remove the leak, or if"
+        echo "verified false positive: use --no-verify (humans only)."
+        echo ""
+        echo "To disable OPSEC scan for this repo: git config opsec.scan disable"
+        echo ""
+        exit 1
+    fi
+fi
+
 echo "✅ No secrets detected. Proceeding with commit..."
 exit 0
