@@ -17,7 +17,7 @@ Three positions, held firmly:
 ```
 hooks/
 ├── commit-msg                      # Strips AI-attribution trailers + OPSEC scan on subject
-├── pre-commit                      # Scans staged files for credential-shaped patterns
+├── pre-commit                      # Scans staged files: credential patterns + OPSEC content
 ├── opsec-scan.sh                   # Sourceable library: builds $opsec_patterns from .local files
 └── opsec-patterns.local.example    # Template for user's gitignored opsec-patterns.local
 ```
@@ -38,7 +38,7 @@ Legitimate human co-authors (`Co-Authored-By: Jane Doe <jane@example.com>`) are 
 
 ### `pre-commit`
 
-Two-layer secret detection:
+Three-layer scan: credential patterns, broad secret detection, and OPSEC content scan.
 
 **Layer 1 — regex (always on, no dependencies).** High-precision patterns for known secret shapes:
 
@@ -47,6 +47,13 @@ Two-layer secret detection:
 - Bearer tokens, generic API keys / passwords / secrets matching `key="..."` assignments
 
 **Layer 2 — gitleaks (when installed).** Drops in automatically if [gitleaks](https://github.com/gitleaks/gitleaks) is on `$PATH`. Adds ~700 built-in detectors (Stripe live keys, GCP service account JSON, private keys, database URLs, etc.) that the regex layer doesn't know about. If gitleaks isn't installed, the hook prints a one-line warning and falls back to regex-only — still safe to commit.
+
+**Layer 3 — OPSEC content scan (when `~/.config/opsec-patterns.local` or `./.opsec-patterns.local` is present).** Sources the same `opsec-scan.sh` library as `commit-msg` and scans **added lines** of staged files (plus filenames) for your machine-level + repo-level OPSEC patterns — hostnames, agent handles, codenames, tailnet name. Catches what credential-shaped regex can't: a fleet hostname in a comment, an agent handle in a docstring, a tailnet suffix in a URL.
+
+- **Diff-only scan.** Unchanged prose with legitimate mentions isn't resurfaced — only newly-added lines are checked. Historical mentions stay a separate cleanup problem.
+- **Same path skipping as Layers 1 + 2.** Test fixtures, `*.example`/`*.template` extensions, `node_modules/`, etc. are exempt.
+- **Same opt-out as commit-msg.** `git config opsec.scan disable` silences this layer too.
+- **Graceful no-op.** If neither `.local` file is present (the default OSS-contributor setup), Layer 3 is skipped — only the hardcoded baseline (session IDs + Tailscale CGNAT IPs) runs, which is rarely useful for content and never blocks legitimate code.
 
 **Install gitleaks** (optional but recommended):
 
@@ -61,7 +68,7 @@ apt install gitleaks
 # https://github.com/gitleaks/gitleaks/releases
 ```
 
-**Path skipping.** Both layers skip staged paths that are known to contain realistic-looking fake keys: `node_modules/`, `vendor/`, `third_party/`, `*.min.js`/`*.min.css`, `test[s]/`/`spec/`/`fixtures/`/`__tests__/`, `example[s]/`/`sample[s]/`/`demo/`/`docs/`, and `*.example`/`*.sample`/`*.template`/`*.dist` template extensions. Real secrets live in source/config files.
+**Path skipping.** All three layers skip staged paths that are known to contain realistic-looking fake keys: `node_modules/`, `vendor/`, `third_party/`, `*.min.js`/`*.min.css`, `test[s]/`/`spec/`/`fixtures/`/`__tests__/`, `example[s]/`/`sample[s]/`/`demo/`/`docs/`, and `*.example`/`*.sample`/`*.template`/`*.dist` template extensions. Real secrets live in source/config files.
 
 ### `opsec-scan.sh` (optional — for operators with internal infrastructure)
 
