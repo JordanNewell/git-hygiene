@@ -1,4 +1,11 @@
-# git-hygiene
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JordanNewell/git-hygiene/main/assets/hero.png" alt="git-hygiene — Tools don't get co-author credit. Strip AI-attribution trailers and catch secrets before they land in your object store." width="100%">
+  <br>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://github.com/JordanNewell/git-hygiene/releases"><img src="https://img.shields.io/github/v/release/JordanNewell/git-hygiene?display_name=tag&include_prereleases" alt="latest release"></a>
+  <img src="https://img.shields.io/badge/platform-bash%20%7C%20zsh-green" alt="platform">
+  <img src="https://img.shields.io/badge/dependencies-zero-lightgrey" alt="dependencies">
+</p>
 
 > Tools don't get co-author credit.
 
@@ -11,6 +18,12 @@ Three positions, held firmly:
 1. **AI tools are tools.** Claude, Copilot, Cursor, Gemini, ChatGPT — they're how the work gets done, not who did the work. The author is the human; the tool is the tool. You don't credit DeWalt on the shed you built with their drill.
 2. **Secrets stay out of git.** API keys, tokens, passwords — pre-commit catches the high-precision patterns before they land in your object store.
 3. **Local enforcement, no SaaS dependency.** The hooks run on your machine against your staged files. No telemetry, no cloud calls, no third-party scans.
+
+## In action
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JordanNewell/git-hygiene/main/assets/terminal.png" alt="git-hygiene in action — git commit triggers commit-msg strip (3 AI trailers removed) + pre-commit credential scan (7 files clean)" width="100%">
+</p>
 
 ## What's included
 
