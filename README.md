@@ -201,7 +201,7 @@ It's a small, focused set of hooks for individual operators who want clean local
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE) © Jordan Newell
 
 ## Signature
 
