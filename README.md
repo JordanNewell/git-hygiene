@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/JordanNewell/git-hygiene/main/assets/hero.png" alt="git-hygiene — Tools don't get co-author credit. Strip AI-attribution trailers and catch secrets before they land in your object store." width="100%">
   <br>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
-  <a href="https://github.com/JordanNewell/git-hygiene/releases"><img src="https://img.shields.io/github/v/release/JordanNewell/git-hygiene?display_name=tag&include_prereleases" alt="latest release"></a>
+  <a href="https://github.com/JordanNewell/git-hygiene/releases"><img src="https://img.shields.io/badge/release-1.0.0-blue
   <img src="https://img.shields.io/badge/platform-bash%20%7C%20zsh-green" alt="platform">
   <img src="https://img.shields.io/badge/dependencies-zero-lightgrey" alt="dependencies">
 </p>
