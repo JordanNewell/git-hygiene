@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-07-19
+## [1.0.0] — 2026-07-19
 
 Initial release. Sourced from commit `109b6f8` ("Initial release:
 AI-attribution strip + secret-scan git hooks"). No formal GitHub
@@ -24,7 +24,7 @@ reflects the public launch state as of 2026-07-19.
 - **Zero dependencies** beyond `bash` / `grep` / `awk` — portable to
   any POSIX shell.
 
-## [1.0.1] - 2026-07-22
+## [1.0.1] — 2026-07-22
 
 Incremental feature additions between 2026-07-20 and 2026-07-22 (no
 formal release; entries sourced from commit history on `main`).
@@ -50,6 +50,6 @@ formal release; entries sourced from commit history on `main`).
 - **OPSEC example baseline doc** rewritten with generic placeholders
   and accurate defaults (`8872f4d`).
 
-[Unreleased]: https://github.com/JordanNewell/git-hygiene/compare/HEAD
+[Unreleased]: https://github.com/JordanNewell/git-hygiene/commits/main
 [1.0.0]: https://github.com/JordanNewell/git-hygiene/commit/109b6f8
 [1.0.1]: https://github.com/JordanNewell/git-hygiene/commit/ef2d6f0
