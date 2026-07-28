@@ -9,13 +9,22 @@
 
 > Tools don't get co-author credit.
 
-A small set of git hooks that enforce a hygiene policy: keep AI-tool attribution out of commit messages, keep secrets out of staged files. No hard dependencies — just `bash`, `grep`, `awk`, and `git`. [gitleaks](https://github.com/gitleaks/gitleaks) is optional but recommended: when installed, the pre-commit hook gets ~700 additional secret detectors for free.
+Every repo I worked in slowly accumulated `Co-Authored-By: Claude` and `🤖 Generated with Claude Code` trailers in the log. Sometimes the setting got reverted, sometimes a collaborator's setup differed. Commit history is the one artifact future employers, acquirers, and collaborators read to evaluate how you work — a log full of AI trailers reads as performative, the opposite of how senior operators signal taste. **You don't credit DeWalt on the shed you built with their drill.**
+
+For regulated industries (defense, finance, health), AI-assisted code is becoming a real disclosure question. A clean history sidesteps the question; a dirty one raises it.
+
+Two git hooks, zero dependencies beyond `bash`/`grep`/`awk`/`git`. [gitleaks](https://github.com/gitleaks/gitleaks) is optional — adds ~700 secret detectors when installed.
+
+- **`commit-msg`** strips AI-attribution trailers (`Co-Authored-By`, `Generated with`, `AI-assisted`). Legitimate human co-authors preserved.
+- **`pre-commit`** scans staged files in three layers: high-precision regex, gitleaks (if installed), and an optional OPSEC content scan for machine-level identifiers.
+
+Runs locally against your staged files. No telemetry, no SaaS, no third-party scans.
 
 ## The policy
 
 Three positions, held firmly:
 
-1. **AI tools are tools.** Claude, Copilot, Cursor, Gemini, ChatGPT — they're how the work gets done, not who did the work. The author is the human; the tool is the tool. You don't credit DeWalt on the shed you built with their drill.
+1. **AI tools are tools.** Claude, Copilot, Cursor, Gemini, ChatGPT — they're how the work gets done, not who did the work. The author is the human; the tool is the tool.
 2. **Secrets stay out of git.** API keys, tokens, passwords — pre-commit catches the high-precision patterns before they land in your object store.
 3. **Local enforcement, no SaaS dependency.** The hooks run on your machine against your staged files. No telemetry, no cloud calls, no third-party scans.
 
