@@ -1,0 +1,12 @@
+# Known false positives — test fixtures in tests/run-tests.sh that exercise
+# Layer 1 regex patterns. These are intentionally fake but format-valid secrets
+# (e.g. `xoxb-1234567890123-...`, `api_key="aaaa..."`) used to verify the
+# hook's secret-detection regex actually blocks each shape.
+#
+# Layer 1 (regex) skips tests/ via skip_path(). Layer 2 (gitleaks) has its
+# own allowlist mechanism — this file. Regenerate fingerprints if line numbers
+# shift: `gitleaks detect --source . --redact --verbose`.
+tests/run-tests.sh:slack-bot-token:268
+tests/run-tests.sh:generic-api-key:272
+tests/run-tests.sh:generic-api-key:273
+tests/run-tests.sh:generic-api-key:274
