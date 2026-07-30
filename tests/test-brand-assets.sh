@@ -9,7 +9,7 @@
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-ASSETS="$REPO_ROOT/assets"
+ASSETS="$REPO_ROOT/docs/assets"
 FAV="$ASSETS/favicons"
 
 PASS=0
