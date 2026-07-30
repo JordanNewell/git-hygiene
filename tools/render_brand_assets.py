@@ -27,7 +27,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TOKENS_PATH = Path("e:/vaults/anything.xyz/50_Projects/brand-system/tokens.json")
-ASSETS_DIR = REPO_ROOT / "assets"
+ASSETS_DIR = REPO_ROOT / "docs" / "assets"
 FAVICON_DIR = ASSETS_DIR / "favicons"
 
 # ---------------------------------------------------------------------------
