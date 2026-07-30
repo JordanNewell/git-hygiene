@@ -205,8 +205,11 @@ def render_og(
     # Accent rule
     _draw_accent_rule(draw, tokens, margin_x, grid(14), grid(8))
 
-    # Title — Space Grotesk Bold
-    display = load_font(SPACE_GROTESK_BOLD, 96)
+    # Title — Space Grotesk Bold. The file at SPACE_GROTESK_BOLD is the variable
+    # font (static Bold TTF was unavailable on this machine), so set wght=700
+    # explicitly — otherwise PIL loads the default axis (wght=300, Light).
+    display = ImageFont.truetype(str(SPACE_GROTESK_BOLD), 96)
+    display.set_variation_by_axes([700])  # wght=700 (Bold)
     bbox = draw.textbbox((0, 0), title, font=display)
     draw.text(
         (margin_x - bbox[0], grid(18) - bbox[1]),
