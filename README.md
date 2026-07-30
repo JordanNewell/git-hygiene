@@ -221,3 +221,10 @@ It's a small, focused set of hooks for individual operators who want clean local
 ## Signature
 
 This repo follows the [Jordan Newell code-signature pattern](https://jordannewell.com/signature/). PGP fingerprint: `67567DC5E7C5353F85F2AF0DAC05D3F3E0EFA32A`. Verify commits with `git verify-commit HEAD`.
+
+
+<p align="right">
+  <a href="https://jordannewell.com" title="Built by Jordan Newell">
+    <img src="assets/newell-badge.png" alt="Built by Jordan Newell" width="48" height="48">
+  </a>
+</p>
