@@ -1,0 +1,15 @@
+# Brainstorming sessions (visual companion etc.)
+.superpowers/
+
+# Python (PIL render scripts in tools/)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+
+# Edit artifacts
+*.bak
+*~
+.DS_Store
