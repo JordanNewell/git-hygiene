@@ -120,6 +120,9 @@ def load_font(path: Path, size: int) -> ImageFont.FreeTypeFont:
 
 def main(argv: list[str]) -> int:
     cmd = argv[1] if len(argv) > 1 else "all"
+    if cmd not in ("og", "favicons", "all"):
+        print(f"Unknown subcommand: {cmd!r}. Use one of: og, favicons, all.", file=sys.stderr)
+        return 2
     if cmd in ("og", "all"):
         render_og()
     if cmd in ("favicons", "all"):
