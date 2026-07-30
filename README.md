@@ -7,6 +7,12 @@
   <img src="https://img.shields.io/badge/dependencies-zero-lightgrey" alt="dependencies">
 </p>
 
+## Landing page
+
+Static site with the same datasheet hero: **https://jordannewell.github.io/git-hygiene/** (enable Pages from repo settings → main branch root, see `docs/superpowers/plans/2026-07-30-git-hygiene-site-branding.md` Task 7).
+
+Source: `index.html` + `assets/site.css`. Regenerate brand assets with `python tools/render_brand_assets.py`.
+
 > Tools don't get co-author credit.
 
 Every repo I worked in slowly accumulated `Co-Authored-By: Claude` and `🤖 Generated with Claude Code` trailers in the log. Sometimes the setting got reverted, sometimes a collaborator's setup differed. Commit history is the one artifact future employers, acquirers, and collaborators read to evaluate how you work — a log full of AI trailers reads as performative, the opposite of how senior operators signal taste. **You don't credit DeWalt on the shed you built with their drill.**
