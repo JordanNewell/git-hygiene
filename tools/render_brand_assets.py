@@ -115,6 +115,149 @@ def load_font(path: Path, size: int) -> ImageFont.FreeTypeFont:
 
 
 # ---------------------------------------------------------------------------
+# OG card — datasheet pattern, 1200x630
+# ---------------------------------------------------------------------------
+
+OG_W = 1200
+OG_H = 630
+
+
+def _draw_scanlines(draw: ImageDraw.ImageDraw, w: int, h: int, surface: RGB) -> None:
+    """Apply 8px-pitch scanline overlay for material depth (~1.5% white)."""
+    overlay = (min(surface.r + 4, 255), min(surface.g + 4, 255), min(surface.b + 4, 255))
+    for y in range(0, h, grid(1)):
+        draw.line([(0, y), (w, y)], fill=overlay, width=1)
+
+
+def _draw_border(draw: ImageDraw.ImageDraw, tokens: BrandTokens, w: int, h: int) -> None:
+    inset = grid(2)  # 16px
+    draw.rectangle(
+        [inset, inset, w - inset, h - inset],
+        outline=hex_tuple(tokens.colors.border),
+        width=1,
+    )
+
+
+def _draw_receipt_chip(
+    draw: ImageDraw.ImageDraw,
+    tokens: BrandTokens,
+    text: str,
+    x: int,
+    y: int,
+    font: ImageFont.FreeTypeFont,
+) -> int:
+    pad_x = grid(2)  # 16px
+    pad_y = grid(1)  # 8px
+    bbox = draw.textbbox((0, 0), text, font=font)
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+    box_w = tw + pad_x * 2
+    box_h = th + pad_y
+    draw.rounded_rectangle(
+        [x, y, x + box_w, y + box_h],
+        radius=tokens.radius.sm,
+        fill=hex_tuple(tokens.colors.surface),
+        outline=hex_tuple(tokens.colors.border),
+        width=1,
+    )
+    draw.text(
+        (x + pad_x - bbox[0], y + pad_y - bbox[1]),
+        text,
+        font=font,
+        fill=hex_tuple(tokens.colors.muted),
+    )
+    return x + box_w
+
+
+def _draw_accent_rule(
+    draw: ImageDraw.ImageDraw,
+    tokens: BrandTokens,
+    x: int,
+    y: int,
+    width: int,
+) -> None:
+    draw.rectangle([x, y, x + width, y + 2], fill=hex_tuple(tokens.colors.primary))
+
+
+def render_og(
+    title: str = "git hygiene",
+    subtitle: str = (
+        "Tools don't get co-author credit. "
+        "Two git hooks, zero dependencies. "
+        "Strips AI trailers, catches secrets."
+    ),
+    receipt: str = "2026-07-30 / v1.0.0 / git-hygiene",
+    output_path: Path = ASSETS_DIR / "og.png",
+) -> Path:
+    tokens = load_tokens()
+    canvas = Image.new("RGB", (OG_W, OG_H), hex_tuple(tokens.colors.background))
+    draw = ImageDraw.Draw(canvas)
+
+    _draw_scanlines(draw, OG_W, OG_H, tokens.colors.surface)
+    _draw_border(draw, tokens, OG_W, OG_H)
+
+    margin_x = grid(8)  # 64px
+
+    # Receipt chip
+    mono_sm = load_font(JETBRAINS_MEDIUM, 18)
+    _draw_receipt_chip(draw, tokens, receipt, margin_x, grid(8), mono_sm)
+
+    # Accent rule
+    _draw_accent_rule(draw, tokens, margin_x, grid(14), grid(8))
+
+    # Title — Space Grotesk Bold
+    display = load_font(SPACE_GROTESK_BOLD, 96)
+    bbox = draw.textbbox((0, 0), title, font=display)
+    draw.text(
+        (margin_x - bbox[0], grid(18) - bbox[1]),
+        title,
+        font=display,
+        fill=hex_tuple(tokens.colors.text),
+    )
+    title_h = bbox[3] - bbox[1]
+
+    # Subtitle — JetBrains Mono Medium, muted
+    mono_md = load_font(JETBRAINS_MEDIUM, 22)
+    sub_bbox = draw.textbbox((0, 0), subtitle, font=mono_md)
+    draw.text(
+        (margin_x - sub_bbox[0], grid(18) + title_h + grid(3) - sub_bbox[1]),
+        subtitle,
+        font=mono_md,
+        fill=hex_tuple(tokens.colors.muted),
+    )
+
+    # Footer — primary brand line + muted meta
+    mono_xs = load_font(JETBRAINS_REGULAR, 14)
+    footer = "NEWELL  /  BUILD. CONNECT. GROW."
+    meta = "MIT · BASH · ZERO-DEP"
+    f_bbox = draw.textbbox((0, 0), footer, font=mono_xs)
+    m_bbox = draw.textbbox((0, 0), meta, font=mono_xs)
+    f_h = f_bbox[3] - f_bbox[1]
+    footer_y = OG_H - grid(8) - f_h
+    draw.text(
+        (margin_x - f_bbox[0], footer_y - f_bbox[1]),
+        footer,
+        font=mono_xs,
+        fill=hex_tuple(tokens.colors.primary),
+    )
+    draw.text(
+        (OG_W - margin_x - (m_bbox[2] - m_bbox[0]) - m_bbox[0],
+         footer_y - m_bbox[1]),
+        meta,
+        font=mono_xs,
+        fill=hex_tuple(tokens.colors.muted),
+    )
+
+    # Footer rule
+    _draw_accent_rule(draw, tokens, margin_x, footer_y - grid(1), grid(24))
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(output_path, format="PNG", optimize=True)
+    print(f"Wrote {output_path} ({output_path.stat().st_size} bytes)")
+    return output_path
+
+
+# ---------------------------------------------------------------------------
 # Subcommand dispatch (functions added in later tasks)
 # ---------------------------------------------------------------------------
 
