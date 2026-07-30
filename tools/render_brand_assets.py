@@ -334,7 +334,11 @@ def render_favicons(output_dir: Path = FAVICON_DIR) -> list[Path]:
     ico_sizes = [16, 32, 64]
     ico_images = [_render_gh_monogram(s, tokens) for s in ico_sizes]
     ico_path = output_dir / "favicon.ico"
-    ico_images[0].save(
+    # Pillow's ICO encoder builds multi-res sub-images by downsampling a single
+    # base image per entry in `sizes` — it will not upsample. Save the largest
+    # rendered image (64x64) as the base so all three sizes emit. (Rendering each
+    # size individually above keeps sharp per-size art available for PNGs.)
+    ico_images[-1].save(
         ico_path,
         format="ICO",
         sizes=[(s, s) for s in ico_sizes],
