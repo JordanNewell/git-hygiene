@@ -299,13 +299,14 @@ def _render_gh_monogram(size: int, tokens: BrandTokens) -> Image.Image:
     y = (size - th) // 2 - bbox[1]
 
     # Draw G (white) + H (green) as separate text calls with manual offset.
-    g_bbox = draw.textbbox((0, 0), "G", font=font)
-    g_w = g_bbox[2] - g_bbox[0]
-    # Tighten letter-spacing by 1px at small sizes (avoids awkward gap).
+    # Use advance width (textlength) not ink width (textbbox) for the H offset —
+    # robust against font swaps where right-side bearing differs.
+    g_advance = draw.textlength("G", font=font)
+    # Tighten letter-spacing proportionally (~size/24 px).
     tighten = max(1, size // 24)
 
     draw.text((x, y), "G", font=font, fill=hex_tuple(tokens.colors.text))
-    draw.text((x + g_w - tighten, y), "H", font=font, fill=hex_tuple(tokens.colors.primary))
+    draw.text((x + int(g_advance) - tighten, y), "H", font=font, fill=hex_tuple(tokens.colors.primary))
 
     # 1px border on canvas edge (skip at 16x16 — border eats too much real estate)
     if size >= 32:
