@@ -360,6 +360,15 @@ suite_pre_commit_negative
 suite_pre_commit_path_skip
 suite_pre_commit_empty_stage
 
+# ---------- NEWELL brand assets ----------
+
+if bash "$(dirname "$0")/test-brand-assets.sh"; then
+    :
+else
+    FAIL=$((FAIL + 1))
+    FAILED_NAMES+=("brand-assets-suite")
+fi
+
 echo ""
 echo "----------------------------"
 echo "  pass: $PASS"
