@@ -265,6 +265,87 @@ def render_og(
 
 
 # ---------------------------------------------------------------------------
+# Favicon set — GH monogram (white G + neon-green H)
+# ---------------------------------------------------------------------------
+
+FAVICON_SIZES = {
+    "favicon-16.png": 16,
+    "favicon-32.png": 32,
+    "favicon-64.png": 64,
+    "apple-touch-icon.png": 180,
+}
+
+
+def _render_gh_monogram(size: int, tokens: BrandTokens) -> Image.Image:
+    """Render the GH monogram at the requested canvas size.
+
+    G is white, H is neon-green — mirrors the canonical NEWELL wordmark's
+    green-E horizontals. Tight letter-spacing so the pair balances.
+    """
+    img = Image.new("RGB", (size, size), hex_tuple(tokens.colors.background))
+    draw = ImageDraw.Draw(img)
+
+    # Font size: pair needs to fit comfortably with padding.
+    # Empirically ~62% of canvas for two glyphs in JBM Bold.
+    font_size = max(8, int(size * 0.62))
+    font = load_font(JETBRAINS_BOLD, font_size)
+
+    text = "GH"
+    bbox = draw.textbbox((0, 0), text, font=font)
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+    # Center the glyph bounding box on the canvas.
+    x = (size - tw) // 2 - bbox[0]
+    y = (size - th) // 2 - bbox[1]
+
+    # Draw G (white) + H (green) as separate text calls with manual offset.
+    g_bbox = draw.textbbox((0, 0), "G", font=font)
+    g_w = g_bbox[2] - g_bbox[0]
+    # Tighten letter-spacing by 1px at small sizes (avoids awkward gap).
+    tighten = max(1, size // 24)
+
+    draw.text((x, y), "G", font=font, fill=hex_tuple(tokens.colors.text))
+    draw.text((x + g_w - tighten, y), "H", font=font, fill=hex_tuple(tokens.colors.primary))
+
+    # 1px border on canvas edge (skip at 16x16 — border eats too much real estate)
+    if size >= 32:
+        draw.rectangle(
+            [0, 0, size - 1, size - 1],
+            outline=hex_tuple(tokens.colors.border),
+            width=1,
+        )
+
+    return img
+
+
+def render_favicons(output_dir: Path = FAVICON_DIR) -> list[Path]:
+    tokens = load_tokens()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+
+    for filename, size in FAVICON_SIZES.items():
+        img = _render_gh_monogram(size, tokens)
+        path = output_dir / filename
+        img.save(path, format="PNG", optimize=True)
+        written.append(path)
+        print(f"Wrote {path} ({path.stat().st_size} bytes)")
+
+    # Multi-res ICO (16+32+64)
+    ico_sizes = [16, 32, 64]
+    ico_images = [_render_gh_monogram(s, tokens) for s in ico_sizes]
+    ico_path = output_dir / "favicon.ico"
+    ico_images[0].save(
+        ico_path,
+        format="ICO",
+        sizes=[(s, s) for s in ico_sizes],
+    )
+    written.append(ico_path)
+    print(f"Wrote {ico_path} ({ico_path.stat().st_size} bytes)")
+
+    return written
+
+
+# ---------------------------------------------------------------------------
 # Subcommand dispatch (functions added in later tasks)
 # ---------------------------------------------------------------------------
 
