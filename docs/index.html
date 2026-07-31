@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
-    <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png?v=2">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
-    <link rel="shortcut icon" href="favicon.ico?v=2">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="git-hygiene — Local git hooks that strip AI-attribution trailers and catch secrets pre-commit. Bash, zero deps, no SaaS.">
@@ -28,6 +24,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/site.css">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicons/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicons/favicon-64.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/favicons/apple-touch-icon.png">
+  <link rel="shortcut icon" href="assets/favicons/favicon.ico">
   <style>
     :root {
       --bg:           #0A0A0A;
@@ -529,13 +530,73 @@
     footer .copyright {
       letter-spacing: 0.06em;
     }
+
+    /* ---------- federated NEWELL footer ---------- */
+    .newell-site-footer {
+      border-top: 1px solid var(--rule);
+      background: var(--bg);
+      padding: 28px 24px 24px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      position: relative;
+    }
+    .newell-site-footer::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 0;
+      width: 64px;
+      height: 1px;
+      background: var(--green);
+    }
+    .nsf-inner { max-width: 1200px; margin: 0; margin-right: auto; display: flex; flex-direction: column; gap: 6px; }
+    .nsf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; line-height: 1.5; }
+    .nsf-brand { gap: 12px; margin-bottom: 4px; }
+    .nsf-mark { flex-shrink: 0; display: block; }
+    .nsf-brand-link { color: #FFFFFF; text-decoration: none; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; transition: color 0.15s ease; border-bottom: 0; }
+    .nsf-brand-link:hover { color: var(--green); }
+    .nsf-product { color: var(--green); font-weight: 400; letter-spacing: 0.06em; }
+    .nsf-links a { color: #C0C0C0; text-decoration: none; transition: color 0.15s ease; border-bottom: 0; font-size: 12px; }
+    .nsf-links a:hover { color: var(--green); }
+    .nsf-family { gap: 14px; margin: 12px 0 4px; padding-top: 14px; border-top: 1px solid var(--rule); }
+    .nsf-family-label { color: #FFFFFF; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; font-size: 10px; padding-right: 4px; }
+    .nfs-item { color: #808080; text-decoration: none; border-bottom: 0; transition: color 0.15s ease; font-size: 12px; letter-spacing: 0.02em; }
+    .nfs-item:hover { color: var(--green); }
+    .nsf-meta { gap: 14px; }
+    .nsf-meta span { color: #707070; font-size: 11px; letter-spacing: 0.02em; }
+    .nsf-support { margin-top: 8px; gap: 18px; }
+    .nsf-support a { color: var(--green); text-decoration: none; transition: color 0.15s ease; border-bottom: 0; font-weight: 500; font-size: 11px; }
+    .nsf-support a:hover { color: var(--accent); }
+    .nsf-legal { color: #505050; font-size: 11px; letter-spacing: 0.02em; }
+    @media (max-width: 600px) {
+      .newell-site-footer { padding: 16px; font-size: 11px; }
+    }
+
+    .newell-floating-mark {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      display: block;
+      z-index: 9999;
+      opacity: 1;
+      transition: transform 0.15s ease;
+      text-decoration: none;
+      border-bottom: 0 !important;
+      line-height: 0;
+    }
+    .newell-floating-mark:hover { border-bottom-color: transparent !important; transform: scale(1.06); }
+    .newell-floating-mark img { display: block; }
+    @media (max-width: 600px) {
+      .newell-floating-mark img { width: 32px; height: 32px; }
+    }
   </style>
 </head>
 <body>
 
 <header class="topbar">
   <a href="/" class="brand">
-    <img class="brand-mark" src="apple-touch-icon.png" alt="git-hygiene" style="width:32px;height:32px;border-radius:6px;vertical-align:middle">
+    <span class="brand-mark">JN</span>
     <span>git-hygiene</span>
   </a>
   <nav>
@@ -740,69 +801,55 @@
 
 </main>
 
-<footer>
-  <div class="monogram">— JN</div>
-  <div class="legal-row">
-    <a href="https://github.com/JordanNewell/git-hygiene">GitHub</a>
-    <a href="https://github.com/JordanNewell/git-hygiene/blob/main/CHANGELOG.md">Changelog</a>
-    <a href="https://github.com/JordanNewell/git-hygiene/security/policy">Security</a>
-    <a href="https://github.com/JordanNewell/git-hygiene/blob/main/LICENSE">MIT</a>
-  </div>
-  <div class="copyright">© 2026 Jordan Newell · MIT · <a href="https://jordannewell.com">jordannewell.com</a></div>
-</footer>
-
 <footer class="newell-site-footer">
   <div class="nsf-inner">
-    <div class="nsf-brand">
-      <svg class="nsf-mark" viewBox="0 0 48 48" width="28" height="28" aria-hidden="true">
+
+    <div class="nsf-row nsf-brand">
+      <svg class="nsf-mark" viewBox="0 0 48 48" width="22" height="22" aria-hidden="true">
         <rect x="2" y="2" width="44" height="44" rx="6" fill="#0A0A0A" stroke="#00FF41" stroke-width="1.5"/>
-        <rect x="6" y="6" width="36" height="36" rx="3" fill="#0A0A0A" stroke="#1F1F1F" stroke-width="0.5"/>
         <path d="M 14 14 L 14 34 L 17 34 L 17 19 L 14 16 Z" fill="#FFFFFF"/>
         <path d="M 31 34 L 31 31 L 17 14 L 14 14 L 14 17 L 28 34 Z" fill="#FFFFFF"/>
         <path d="M 34 14 L 31 14 L 31 31 L 34 28 L 34 14 Z" fill="#FFFFFF"/>
       </svg>
-      <div class="nsf-brand-text">
-        <a href="https://jordannewell.com" class="nsf-brand-link">A NEWELL project</a>
-        <span class="nsf-sep">·</span>
-        <span class="nsf-product">git-hygiene</span>
-      </div>
+      <a href="https://jordannewell.com" class="nsf-brand-link">A NEWELL project</a>
+      <span class="nsf-product">/ git-hygiene</span>
     </div>
-    <div class="nsf-row nsf-links"><a href="https://github.com/JordanNewell/git-hygiene">github</a> <span class="nsf-sep">·</span> <a href="https://github.com/JordanNewell/git-hygiene#readme">readme</a> <span class="nsf-sep">·</span> <a href="https://github.com/JordanNewell/git-hygiene/blob/main/hooks/">hooks</a> <span class="nsf-sep">·</span> <a href="https://github.com/JordanNewell/git-hygiene/blob/main/tests/">tests</a> <span class="nsf-sep">·</span> <a href="https://github.com/JordanNewell/git-hygiene/security/policy">security</a></div>
-    <div class="nsf-row nsf-meta"><span>MIT</span> <span class="nsf-sep">·</span> <span>POSIX shell</span> <span class="nsf-sep">·</span> <span>~/.githooks/</span> <span class="nsf-sep">·</span> <span>5-check pipeline</span></div>
-    <div class="nsf-row nsf-legal">Hooks catch common patterns — sophisticated exfiltration still requires review</div>
-    <div class="nsf-row nsf-social">
-      <a href="https://github.com/JordanNewell" aria-label="GitHub" title="GitHub">github</a>
-      <span class="nsf-sep">·</span>
-      <a href="https://github.com/sponsors/JordanNewell" aria-label="Sponsor" title="Sponsor on GitHub">sponsor</a>
-      <span class="nsf-sep">·</span>
-      <a href="https://buymeacoffee.com/jordannewell" aria-label="Buy me a coffee" title="Buy me a coffee">coffee →</a>
+
+    <div class="nsf-row nsf-links">
+      <a href="https://github.com/JordanNewell/git-hygiene#readme">readme</a>
+      <a href="https://github.com/JordanNewell/git-hygiene/blob/main/CHANGELOG.md">changelog</a>
+      <a href="https://github.com/JordanNewell/git-hygiene/security/policy">security</a>
+      <a href="https://github.com/JordanNewell/git-hygiene/blob/main/LICENSE">license</a>
+      <a href="https://github.com/JordanNewell/git-hygiene">source ↗</a>
     </div>
+
+    <div class="nsf-row nsf-family">
+      <span class="nsf-family-label">more from newell</span>
+      <a class="nfs-item" href="https://jordannewell.github.io/curtis-ai-chat/">curtis-ai-chat</a>
+      <a class="nfs-item" href="https://jordannewell.github.io/pat-scanner/">pat-scanner</a>
+      <a class="nfs-item" href="https://jordannewell.github.io/newell-typeface/">newell-typeface</a>
+      <a class="nfs-item" href="https://jordannewell.github.io/temporal-git/">temporal-git</a>
+      <a class="nfs-item" href="https://jordannewell.com">jordannewell.com ↗</a>
+    </div>
+
+    <div class="nsf-row nsf-meta">
+      <span>MIT</span>
+      <span>git hooks</span>
+      <span>POSIX shell</span>
+    </div>
+
+    <div class="nsf-row nsf-support">
+      <a href="https://github.com/sponsors/JordanNewell">sponsor ↗</a>
+      <a href="https://buymeacoffee.com/jordannewell">coffee →</a>
+      <span class="nsf-legal">© 2026 Jordan Newell · git-hygiene is a tool by Jordan Newell</span>
+    </div>
+
   </div>
 </footer>
-<style>
-.newell-site-footer { border-top: 1px solid #1F1F1F; background: #0A0A0A; padding: 24px; font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 12px; color: #A0A0A0; }
-.nsf-inner { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
-.nsf-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
-.nsf-mark { flex-shrink: 0; display: block; }
-.nsf-brand-text { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.nsf-brand-link { color: #FFFFFF; text-decoration: none; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; transition: color 0.15s ease; }
-.nsf-brand-link:hover { color: #00FF41; }
-.nsf-product { color: #00FF41; font-weight: 500; }
-.nsf-sep { color: #1F1F1F; }
-.nsf-row { padding-left: 40px; }
-.nsf-links a, .nsf-meta span, .nsf-legal { color: #A0A0A0; }
-.nsf-links a { text-decoration: none; transition: color 0.15s ease; }
-.nsf-links a:hover { color: #00FF41; }
-.nsf-meta span { color: #707070; }
-.nsf-legal { color: #707070; font-size: 11px; line-height: 1.5; }
-.nsf-social { padding-left: 40px; margin-top: 4px; }
-.nsf-social a { color: #A0A0A0; text-decoration: none; transition: color 0.15s ease; }
-.nsf-social a:hover { color: #00FF41; }
-@media (max-width: 600px) {
-  .newell-site-footer { padding: 16px; font-size: 11px; }
-  .nsf-row, .nsf-social { padding-left: 0; }
-  .nsf-brand { margin-bottom: 4px; }
-}
-</style>
+
+<a href="https://jordannewell.com" class="newell-floating-mark" aria-label="NEWELL — more projects" title="A NEWELL project">
+  <img src="assets/nmoji-button.png" alt="NEWELL" width="48" height="48">
+</a>
+
 </body>
 </html>
